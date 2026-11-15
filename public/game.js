@@ -153,11 +153,11 @@
     // timer
     if (s.timer) {
       deadlineAt = performance.now() + s.timer.ms;
-      deadlineTotal = { place: 15000, turn: 30000, next: 7000 }[s.timer.kind];
+      deadlineTotal = { place: 15000, next: 7000 }[s.timer.kind];
     } else deadlineAt = 0;
 
     // HUD
-    $('#round').textContent = `RUNDA ${Math.min(s.round, s.rounds)}/${s.rounds}`;
+    $('#round').textContent = `RUNDA ${Math.min(s.round, s.rounds)} · DO 2 WYGRANYCH`;
     $('#dots').innerHTML = Array.from({ length: s.rounds }, (_, i) => `<b class="${s.history[i] || ''}"></b>`).join('');
     $('#score').innerHTML = `${esc(me.name)} <span style="color:var(--gold)">${me.wins} : ${opp ? opp.wins : 0}</span> ${esc(opp ? opp.name : '?')}`;
 
@@ -166,10 +166,8 @@
     if (s.phase === 'placing') {
       if (!me.placed) { text = `USTAW BOMBY: ${draft.size}/${s.bombCount}`; cls = 'me'; }
       else text = `CZEKAM AŻ ${opp.name.toUpperCase()} USTAWI BOMBY…`;
-    } else if (s.phase === 'playing') {
-      if (s.turn === 'me') { text = `TWOJA TURA — KLIKNIJ POLE NA PLANSZY ${opp.name.toUpperCase()}`; cls = 'me'; }
-      else { text = `TURA: ${opp.name.toUpperCase()}…`; cls = 'opp'; }
-    } else if (s.phase === 'roundover') text = 'KONIEC RUNDY';
+    } else if (s.phase === 'playing') { text = baseStatus(); cls = 'me'; }
+    else if (s.phase === 'roundover') text = 'KONIEC RUNDY';
     else text = 'KONIEC GRY';
     st.textContent = text; st.className = cls;
 
@@ -178,13 +176,15 @@
     $('#guess-title').textContent = opp ? `PLANSZA GRACZA: ${opp.name.toUpperCase()}` : 'PLANSZA PRZECIWNIKA';
 
     const placing = s.phase === 'placing' && !me.placed;
-    const myTurn = s.phase === 'playing' && s.turn === 'me';
+    const myTurn = s.phase === 'playing'; // gramy jednocześnie — każdy w swoim tempie
+    const safe = s.size * s.size - s.bombCount;
+    const done = c => c.filter(v => v >= 0).length;
 
     // lewa: moja plansza
     paint($('#own'), n, { cells: s.own.cells, flags: s.own.flags, bombs: placing ? [...draft] : s.own.bombs, boom: s.own.boom, last: s.own.last });
     $('#own').classList.toggle('active', placing);
     $('#p-own').classList.toggle('active', placing);
-    $('#own-sub').textContent = placing ? 'KLIKAJ POLA, ABY USTAWIĆ BOMBY' : s.phase === 'placing' ? 'BOMBY USTAWIONE' : 'TU WIDAĆ RUCHY PRZECIWNIKA';
+    $('#own-sub').textContent = placing ? 'KLIKAJ POLA, ABY USTAWIĆ BOMBY' : s.phase === 'placing' ? 'BOMBY USTAWIONE' : `${opp.name.toUpperCase()} ODKRYŁ ${done(s.own.cells)}/${safe} BEZPIECZNYCH`;
 
     // prawa: plansza przeciwnika
     const g = $('#guess');
@@ -194,7 +194,7 @@
     g.classList.toggle('active', myTurn);
     $('#p-guess').classList.toggle('active', myTurn);
     $('#p-guess').classList.toggle('dim', !s.guess);
-    $('#guess-sub').textContent = s.guess ? (myTurn ? 'TWÓJ RUCH — KLIKNIJ POLE' : 'TU SZUKASZ BOMB PRZECIWNIKA') : 'JESZCZE NIEDOSTĘPNA';
+    $('#guess-sub').textContent = s.guess ? `TY: ${done(s.guess.cells)}/${safe} BEZPIECZNYCH · FLAGI ${s.guess.flags.length}/${s.bombCount}` : 'JESZCZE NIEDOSTĘPNA';
 
     // sterowanie
     show($('#c-place'), s.phase === 'placing' && !me.placed);
@@ -221,7 +221,7 @@
     const m = $('#modal');
     if (s.phase !== 'gameover') return show(m, false);
     const w = s.me.wins, l = s.opp ? s.opp.wins : 0;
-    const title = s.opponentLeft ? 'PRZECIWNIK WYSZEDŁ — WYGRYWASZ WALKOWEREM!' : w > l ? 'WYGRAŁEŚ GRĘ!' : w < l ? 'PRZEGRAŁEŚ GRĘ' : 'REMIS';
+    const title = s.opponentLeft ? 'PRZECIWNIK WYSZEDŁ — WYGRYWASZ WALKOWEREM!' : w > l ? '🏆 WYGRAŁEŚ GRĘ! 🏆' : 'PRZEGRAŁEŚ GRĘ';
     $('#modal-box').innerHTML = `<h2>KONIEC GRY</h2><div class="big">${title}</div>
       <p>${esc(s.me.name)} <b style="color:var(--gold)">${w} : ${l}</b> ${esc(s.opp ? s.opp.name : s.leftName || '?')}</p>
       <div class="row"><button class="btn" id="b-again" ${s.me.rematch ? 'disabled' : ''}>${s.me.rematch ? 'CZEKAM NA PRZECIWNIKA…' : 'ZAGRAJ JESZCZE RAZ'}</button>
@@ -234,7 +234,10 @@
     const p = prev && prev.phase !== 'visitor' && prev.phase !== 'lobby' ? prev : null;
     if (s.phase === 'placing' && (!p || p.round !== s.round || p.phase !== 'placing')) Sound.sfx('start');
     if (s.phase === 'playing' && (!p || p.phase !== 'playing')) Sound.sfx('turn');
-    else if (s.phase === 'playing' && p && p.turn !== 'me' && s.turn === 'me') Sound.sfx('turn');
+    if (s.phase === 'gameover' && (!p || p.phase !== 'gameover')) {
+      if (s.opponentLeft || s.me.wins > (s.opp ? s.opp.wins : 0)) { Fireworks.start(); Sound.sfx('win', 0.5); }
+    }
+    if (s.phase !== 'gameover') Fireworks.stop();
     if (s.phase === 'roundover' && (!p || p.phase !== 'roundover')) {
       if (s.result.reason === 'boom') {
         Sound.sfx('boom');
@@ -242,7 +245,6 @@
       }
       Sound.sfx(s.result.winner === 'me' ? 'win' : 'lose', s.result.reason === 'boom' ? 0.9 : 0);
     }
-    if (s.phase === 'playing' && p && p.phase === 'playing' && p.turn === 'opp' && s.turn === 'me') { /* ruch przeciwnika */ }
   }
 
   // ---------- licznik ----------
@@ -256,20 +258,14 @@
     const t = S.timer;
     let note = '';
     if (t.kind === 'place') note = t.who === 'me' ? `PRZECIWNIK SKOŃCZYŁ! MASZ ${sec} s — POTEM BOMBY ZOSTANĄ DOLOSOWANE` : `${S.opp.name.toUpperCase()} MA JESZCZE ${sec} s`;
-    else if (t.kind === 'turn') note = t.who === 'me' ? `CZAS NA RUCH: ${sec} s` : '';
-    else if (t.kind === 'next') note = `NASTĘPNA RUNDA ZA ${sec} s`;
-    $('#own-sub').dataset.note = note;
-    const st = $('#status');
-    if (note && S.phase !== 'roundover') st.textContent = baseStatus() + (t.kind === 'turn' && t.who === 'me' ? ` (${sec}s)` : '');
-    if (t.kind === 'place' || S.phase === 'roundover') {
-      const sub = $('#guess-sub'); if (S.phase === 'roundover' || t.kind === 'place') sub.textContent = note;
-    }
+    else if (t.kind === 'next') note = S.me.wins >= 2 || (S.opp && S.opp.wins >= 2) || S.round >= S.rounds ? `WYNIK KOŃCOWY ZA ${sec} s` : `NASTĘPNA RUNDA ZA ${sec} s`;
+    if (note) $('#guess-sub').textContent = note;
     if (t.who === 'me' && t.kind !== 'next' && sec <= 5 && sec > 0 && sec !== lastTick) { lastTick = sec; Sound.sfx('tick'); }
   }, 250);
   function baseStatus() {
     const s = S;
     if (s.phase === 'placing') return s.me.placed ? `CZEKAM AŻ ${s.opp.name.toUpperCase()} USTAWI BOMBY…` : `USTAW BOMBY: ${draft.size}/${s.bombCount}`;
-    if (s.phase === 'playing') return s.turn === 'me' ? `TWOJA TURA — KLIKNIJ POLE NA PLANSZY ${s.opp.name.toUpperCase()}` : `TURA: ${s.opp.name.toUpperCase()}…`;
+    if (s.phase === 'playing') return `GRAJ! ZNAJDŹ BOMBY ${s.opp.name.toUpperCase()} ZANIM ON ZNAJDZIE TWOJE`;
     return $('#status').textContent;
   }
 
@@ -336,7 +332,6 @@
   // strzały i flagi na planszy przeciwnika
   function guessAction(i, action) {
     if (!S || S.phase !== 'playing') return;
-    if (S.turn !== 'me') return toast('Poczekaj na swoją turę!');
     if (S.guess.cells[i] >= 0) return;
     const has = S.guess.flags.includes(i);
     if (action === 'reveal' && has) return toast('Najpierw zdejmij flagę (PPM).');

@@ -11,7 +11,7 @@ const PUB = path.join(__dirname, 'public');
 const BOMBS = { 10: 10, 15: 22, 20: 40 }; // rozmiar planszy -> liczba bomb
 const ROUNDS = 3;
 const PLACE_LIMIT = 15000;   // czas drugiego gracza na ustawienie bomb
-const TURN_LIMIT = 30000;    // czas na ruch
+const WINS_NEEDED = 2;       // kto pierwszy wygra 2 rundy, wygrywa grę
 const RESULT_MS = 7000;      // pauza po rundzie
 const RECONNECT_MS = 20000;  // tolerancja na rozłączenie
 
@@ -83,12 +83,8 @@ function onPlaced(p) {
 }
 function beginPlay() {
   room.phase = 'playing';
-  room.turn = (room.round - 1) % 2;
-  startTurn();
-}
-function startTurn() {
-  room.deadlineFor = room.players[room.turn].token;
-  setTimer('turn', TURN_LIMIT, () => { room.turn ^= 1; startTurn(); });
+  room.deadlineFor = null;
+  clearTimer(); // wszyscy grają jednocześnie, we własnym tempie — bez limitu czasu
 }
 function endRound(winnerIdx, reason) {
   const w = room.players[winnerIdx];
@@ -97,7 +93,7 @@ function endRound(winnerIdx, reason) {
   room.result = { winner: winnerIdx, reason };
   room.phase = 'roundover';
   setTimer('next', RESULT_MS, () => {
-    if (room.round >= ROUNDS) { room.phase = 'gameover'; room.players.forEach(p => p.rematch = false); }
+    if (room.round >= ROUNDS || room.players.some(p => p.wins >= WINS_NEEDED)) { room.phase = 'gameover'; room.players.forEach(p => p.rematch = false); }
     else startRound();
   });
 }
@@ -179,7 +175,6 @@ function handle(token, msg) {
     }
     case 'reveal': case 'flag': {
       if (room.phase !== 'playing') return { error: 'Teraz nie można grać.' };
-      if (room.turn !== idx) return { error: 'To nie Twoja tura.' };
       const i = msg.i;
       if (!Number.isInteger(i) || i < 0 || i >= n * n) return { error: 'Złe pole.' };
       if (p.revealed.has(i)) return { error: 'Pole jest już odkryte.' };
@@ -204,7 +199,6 @@ function handle(token, msg) {
         if (num(o.bombs, c, n) === 0) forEachNeighbor(c, n, j => { if (!p.revealed.has(j)) stack.push(j); });
       }
       if (p.revealed.size === n * n - bombCount()) endRound(idx, 'cleared');
-      else { room.turn = 1 - idx; startTurn(); }
       return { ok: true };
     }
   }
@@ -245,7 +239,6 @@ function snapshot(token) {
   return {
     phase: ph, size: n, bombCount: bombCount(), round: room.round, rounds: ROUNDS,
     me: pub(p, true), opp: pub(o, false),
-    turn: ph === 'playing' ? rel(room.turn) : null,
     timer: tm,
     history: room.history.map(rel),
     result: room.result && { winner: rel(room.result.winner), reason: room.result.reason },

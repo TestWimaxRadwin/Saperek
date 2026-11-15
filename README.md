@@ -15,9 +15,9 @@ Otwórz `http://localhost:3000` w dwóch kartach (każda karta = osobny gracz).
 - Gracze podają imię. Pierwszy wybiera rozmiar planszy (10×10 = 10 bomb, 15×15 = 22, 20×20 = 40) i rozpoczyna grę; drugi dołącza. Max 2 graczy naraz.
 - Każdy ustawia bomby na własnej planszy. Gdy pierwszy skończy, drugi ma 15 s (brakujące bomby zostaną dolosowane).
 - Lewa strona ekranu: Twoja plansza i ruchy przeciwnika. Prawa: plansza przeciwnika z jego imieniem nad nią — tu szukasz bomb.
-- Ruch (30 s): odkrycie pola kończy turę. Flaga (PPM lub tryb FLAGA) nie kończy tury; flag jest tyle, ile bomb.
-- Runda kończy się, gdy ktoś trafi na bombę (przegrywa) albo oflaguje poprawnie wszystkie bomby przeciwnika (wygrywa).
-- 3 rundy; wygrywa ten, kto ma więcej wygranych rund.
+- Gra jest równoczesna, bez tur: każdy gra we własnym tempie. LPM = odkryj pole, PPM = flaga (flag jest tyle, ile bomb).
+- Runda kończy się, gdy ktoś trafi na bombę (przegrywa) albo jako pierwszy oflaguje poprawnie wszystkie bomby przeciwnika / odkryje wszystkie bezpieczne pola (wygrywa).
+- Kto pierwszy wygra 2 rundy, wygrywa grę — zwycięzca dostaje fajerwerki.
 
 ## Hosting za darmo — rekomendacja: Render.com
 

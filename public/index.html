@@ -76,14 +76,16 @@
         <span id="flags-left"></span>
       </div>
     </div>
-    <p class="legend">LPM = odkryj pole (kończy ruch) · PPM = flaga (nie kończy ruchu) · Wygrywasz, gdy przeciwnik wybuchnie albo oflagujesz wszystkie jego bomby.</p>
+    <p class="legend">Grasz równocześnie z przeciwnikiem, we własnym tempie. LPM = odkryj pole · PPM = flaga. Runda: kto pierwszy oflaguje wszystkie bomby przeciwnika (lub odkryje wszystkie bezpieczne pola) — wygrywa; kto trafi na bombę — przegrywa. Pierwszy do 2 wygranych rund wygrywa grę.</p>
   </section>
 </div>
 
 <div id="modal" class="hidden"><div class="card" id="modal-box"></div></div>
 <div id="toast" class="hidden"></div>
 
+<canvas id="fw" class="hidden"></canvas>
 <script src="audio.js"></script>
+<script src="fireworks.js"></script>
 <script src="game.js"></script>
 </body>
 </html>
