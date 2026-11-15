@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Saper dla dwóch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <h1>SAPER <span>DLA DWÓCH</span></h1>
+    <button id="mute" class="btn small" type="button">♪ MUZYKA: TAK</button>
+  </header>
+  <div id="conn" class="hidden">ŁĄCZENIE Z SERWEREM…</div>
+
+  <!-- 1. Imię -->
+  <section id="s-name" class="screen card">
+    <h2>PODAJ SWOJE IMIĘ</h2>
+    <form id="f-name">
+      <input id="name" maxlength="14" autocomplete="off" placeholder="IMIĘ" required>
+      <button id="b-join" class="btn" type="submit">WEJDŹ</button>
+    </form>
+    <p id="room-info" class="info"></p>
+  </section>
+
+  <!-- 2. Lobby -->
+  <section id="s-lobby" class="screen card hidden">
+    <h2>LOBBY</h2>
+    <ul id="players" class="players"></ul>
+    <div id="lobby-host" class="hidden">
+      <p class="info">WYBIERZ ROZMIAR PLANSZY:</p>
+      <div id="sizes" class="seg"></div>
+    </div>
+    <p id="lobby-msg" class="info"></p>
+    <div class="row">
+      <button id="b-ready" class="btn" type="button"></button>
+      <button id="b-leave" class="btn ghost" type="button">WYJDŹ</button>
+    </div>
+  </section>
+
+  <!-- 3. Gra -->
+  <section id="s-game" class="screen hidden">
+    <div id="hud">
+      <div class="hud-left"><div id="round">RUNDA 1/3</div><div id="dots"></div></div>
+      <div class="hud-mid"><div id="status"></div><div id="bar"><i></i></div></div>
+      <div class="hud-right" id="score"></div>
+    </div>
+    <div id="banner" class="hidden"></div>
+    <div id="boards">
+      <div class="panel" id="p-own">
+        <h3 id="own-title"></h3>
+        <div class="board" id="own"></div>
+        <div class="sub" id="own-sub"></div>
+      </div>
+      <div class="panel" id="p-guess">
+        <h3 id="guess-title"></h3>
+        <div class="board" id="guess"></div>
+        <div class="sub" id="guess-sub"></div>
+      </div>
+    </div>
+    <div id="controls">
+      <div id="c-place" class="hidden row">
+        <button id="b-rand" class="btn small" type="button">LOSUJ</button>
+        <button id="b-clear" class="btn small ghost" type="button">WYCZYŚĆ</button>
+        <button id="b-done" class="btn" type="button">GOTOWE</button>
+      </div>
+      <div id="c-play" class="hidden row">
+        <div class="seg">
+          <button id="m-reveal" type="button" class="on"><i class="ic ic-dig"></i> ODKRYJ</button>
+          <button id="m-flag" type="button"><i class="ic ic-flag"></i> FLAGA</button>
+        </div>
+        <span id="flags-left"></span>
+      </div>
+    </div>
+    <p class="legend">LPM = odkryj pole (kończy ruch) · PPM = flaga (nie kończy ruchu) · Wygrywasz, gdy przeciwnik wybuchnie albo oflagujesz wszystkie jego bomby.</p>
+  </section>
+</div>
+
+<div id="modal" class="hidden"><div class="card" id="modal-box"></div></div>
+<div id="toast" class="hidden"></div>
+
+<script src="audio.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

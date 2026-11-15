@@ -1,0 +1,28 @@
+Specyfikacja gry „Saper” dla dwóch graczy
+
+Cel
+Zdefiniować zasady i przepływ rozgrywki dla implementacji w przeglądarce.
+
+Stan początkowy
+Po wejściu na stronę każdy gracz podaje swoje imię. Gra przechodzi dalej dopiero wtedy, gdy obaj gracze są gotowi. W tym samym momencie mogą grać max 2 gracze. Pierwszy inicjuje grę, a drugi widzi że gra zostala rozpoczęta i do niej dolącza. 
+
+Etap ustawiania bomb
+Każdy gracz ustawia bomby na własnej planszy. Ta plansza będzie używana przez przeciwnika. Po tym, jak pierwszy gracz zakończy rozmieszczanie, drugi gracz ma maksymalnie 15 sekund na ustawienie wszystkich swoich bomb. Zakładana liczba bomb to 10 na gracza.
+
+Widok rozgrywki
+Ekran jest podzielony na dwie części. Po lewej stronie widać planszę przygotowaną dla przeciwnika oraz jego ruchy, na przykład strzały lub oznaczenia. Po prawej stronie jest nasza plansza, na której próbujemy zidentyfikować bomby przygotowane przez przeciwnika.
+
+Warunki zwycięstwa w turze
+Tura kończy się zwycięstwem, gdy przeciwnik trafi na bombę i nastąpi wybuch. Albo gdy poprawnie rozbroimy wszystkie bomby przeciwnika.
+
+Liczba tur i wynik końcowy
+Rozgrywane są trzy tury. Wygrywa ten gracz, który ma najwięcej wygranych tur na koniec gry.
+
+Styl 
+To ma być pixelowa gra retro, z muzyką 8-bit. 
+
+Uwagi implementacyjne
+To ma być gra online, web dla 2 graczy. 
+Należy powinien pilnować stanu gry, kolejek, limitu czasu oraz poprawności ruchów. Interfejs powinien jasno pokazywać, gdzie gracz może klikać, oznaczać pola (imię gracza powinno być nad planszą na której zgaduje lokalizację bomb) oraz kiedy tura się kończy.
+Wielkość planszy: do wyboru przez pierwszego gracza (10x10, 15x15, 20x20) - ilość bomb ma być proporcjonalna do rozmiaru planszy.
+Dodaj rekomendację, na jaki serwer za darmo mogę wrzucić tę grę, aby mój syn w mógl w nią grać z kolegami. 

@@ -1,0 +1,9 @@
+{
+  "name": "saper-dla-dwoch",
+  "version": "1.0.0",
+  "description": "Saper dla dwóch graczy online — retro, pixel-art, muzyka 8-bit",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" },
+  "license": "MIT"
+}
