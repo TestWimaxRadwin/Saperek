@@ -81,8 +81,25 @@ function onPlaced(p) {
     });
   }
 }
+function floodReveal(p, o, i) {
+  const n = room.size, stack = [i];
+  while (stack.length) {
+    const c = stack.pop();
+    if (p.revealed.has(c) || p.flags.has(c)) continue;
+    p.revealed.add(c);
+    if (num(o.bombs, c, n) === 0) forEachNeighbor(c, n, j => { if (!p.revealed.has(j)) stack.push(j); });
+  }
+}
+// Pole startowe: losowe bezpieczne pole (najchętniej puste "0", które otwiera obszar).
+function giveFreeCell(p, o) {
+  const n = room.size, safe = [], zeros = [];
+  for (let i = 0; i < n * n; i++) if (!o.bombs.has(i)) { safe.push(i); if (num(o.bombs, i, n) === 0) zeros.push(i); }
+  const pool = zeros.length ? zeros : safe;
+  floodReveal(p, o, pool[(Math.random() * pool.length) | 0]);
+}
 function beginPlay() {
   room.phase = 'playing';
+  room.players.forEach(p => giveFreeCell(p, other(p)));
   room.deadlineFor = null;
   clearTimer(); // wszyscy grają jednocześnie, we własnym tempie — bez limitu czasu
 }
@@ -191,13 +208,7 @@ function handle(token, msg) {
       if (p.flags.has(i)) return { error: 'Najpierw zdejmij flagę.' };
       p.last = i;
       if (o.bombs.has(i)) { p.boom = i; endRound(1 - idx, 'boom'); return { ok: true }; }
-      const stack = [i];
-      while (stack.length) {
-        const c = stack.pop();
-        if (p.revealed.has(c) || p.flags.has(c)) continue;
-        p.revealed.add(c);
-        if (num(o.bombs, c, n) === 0) forEachNeighbor(c, n, j => { if (!p.revealed.has(j)) stack.push(j); });
-      }
+      floodReveal(p, o, i);
       if (p.revealed.size === n * n - bombCount()) endRound(idx, 'cleared');
       return { ok: true };
     }
