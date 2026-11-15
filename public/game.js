@@ -222,7 +222,7 @@
     const m = $('#modal');
     if (s.phase !== 'gameover') return show(m, false);
     const w = s.me.wins, l = s.opp ? s.opp.wins : 0;
-    const title = s.opponentLeft ? 'PRZECIWNIK WYSZEDŁ — WYGRYWASZ WALKOWEREM!' : w > l ? '🏆 WYGRAŁEŚ GRĘ! 🏆' : 'PRZEGRAŁEŚ GRĘ';
+    const title = s.forfeit ? 'PRZECIWNIK WYSZEDŁ — WYGRYWASZ WALKOWEREM!' : w > l ? '🏆 WYGRAŁEŚ GRĘ! 🏆' : 'PRZEGRAŁEŚ GRĘ';
     $('#modal-box').innerHTML = `<h2>KONIEC GRY</h2><div class="big">${title}</div>
       <p>${esc(s.me.name)} <b style="color:var(--gold)">${w} : ${l}</b> ${esc(s.opp ? s.opp.name : s.leftName || '?')}</p>
       <div class="row"><button class="btn" id="b-again" ${s.me.rematch ? 'disabled' : ''}>${s.me.rematch ? 'CZEKAM NA PRZECIWNIKA…' : 'ZAGRAJ JESZCZE RAZ'}</button>
@@ -236,7 +236,7 @@
     if (s.phase === 'placing' && (!p || p.round !== s.round || p.phase !== 'placing')) Sound.sfx('start');
     if (s.phase === 'playing' && (!p || p.phase !== 'playing')) Sound.sfx('turn');
     if (s.phase === 'gameover' && (!p || p.phase !== 'gameover')) {
-      if (s.opponentLeft || s.me.wins > (s.opp ? s.opp.wins : 0)) { Fireworks.start(); Sound.sfx('win', 0.5); }
+      if (s.forfeit || s.me.wins > (s.opp ? s.opp.wins : 0)) { Fireworks.start(); Sound.sfx('win', 0.5); }
     }
     if (s.phase !== 'gameover') Fireworks.stop();
     if (s.phase === 'roundover' && (!p || p.phase !== 'roundover')) {

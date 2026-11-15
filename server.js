@@ -13,7 +13,7 @@ const ROUNDS = 3;
 const PLACE_LIMIT = 15000;   // czas drugiego gracza na ustawienie bomb
 const WINS_NEEDED = 2;       // kto pierwszy wygra 2 rundy, wygrywa grę
 const RESULT_MS = 7000;      // pauza po rundzie
-const RECONNECT_MS = 20000;  // tolerancja na rozłączenie
+const RECONNECT_MS = 5000;   // po zamknięciu karty gra kończy się po tylu ms (zapas na odświeżenie strony)
 
 let room;
 let timer = null, timerEnd = 0, timerKind = null;
@@ -125,13 +125,14 @@ function leavePlayer(token) {
   if (!room.players.length) return resetRoom();
   if (room.phase === 'lobby') { room.players.forEach(x => x.ready = false); return; }
   clearTimer();
+  room.forfeit = room.phase !== 'gameover'; // wyjście w trakcie gry = walkower dla gracza, który został
   room.phase = 'gameover'; room.opponentLeft = true; room.leftName = p.name;
   room.players[0].rematch = false;
 }
 function toLobby() {
   clearTimer();
   room.phase = 'lobby'; room.round = 0; room.history = []; room.result = null;
-  room.opponentLeft = false; room.leftName = null;
+  room.opponentLeft = false; room.leftName = null; room.forfeit = false;
   room.players.forEach(p => { p.wins = 0; p.ready = false; p.rematch = false; Object.assign(p, blank()); });
 }
 
@@ -268,7 +269,7 @@ function snapshot(token) {
     timer: tm,
     history: room.history.map(rel),
     result: room.result && { winner: rel(room.result.winner), reason: room.result.reason },
-    opponentLeft: room.opponentLeft, leftName: room.leftName,
+    opponentLeft: room.opponentLeft, leftName: room.leftName, forfeit: !!room.forfeit,
     own: {
       bombs: [...(p.placed ? p.bombs : p.draft)],
       cells: live && o ? cellsView(p, o) : [],
