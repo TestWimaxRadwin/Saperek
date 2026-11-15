@@ -97,6 +97,7 @@
   // ---------- ekrany ----------
   function onState(s) {
     prev = S; S = s;
+    if (s.phase !== 'gameover') Fireworks.stop();
     if (s.phase === 'visitor') return renderVisitor(s);
     if (s.phase === 'lobby') return renderLobby(s);
     renderGame(s);
@@ -285,8 +286,8 @@
   $('#b-ready').addEventListener('click', () => { Sound.sfx('click'); api('ready'); });
   $('#b-leave').addEventListener('click', () => { api('leave'); });
   $('#modal').addEventListener('click', e => {
-    if (e.target.id === 'b-again') { Sound.sfx('click'); api('rematch'); }
-    if (e.target.id === 'b-exit') api('leave');
+    if (e.target.id === 'b-again') { Sound.sfx('click'); Fireworks.stop(); api('rematch'); }
+    if (e.target.id === 'b-exit') { Fireworks.stop(); api('leave'); }
   });
   $('#mute').addEventListener('click', () => {
     Sound.setMuted(!Sound.isMuted()); updateMute();
@@ -332,7 +333,11 @@
   // strzały i flagi na planszy przeciwnika
   function guessAction(i, action) {
     if (!S || S.phase !== 'playing') return;
-    if (S.guess.cells[i] >= 0) return;
+    if (S.guess.cells[i] >= 0) {
+      if (action !== 'reveal' || S.guess.cells[i] === 0) return;
+      Sound.sfx('reveal'); api('reveal', { i }); // odkrycie sąsiadów (chord)
+      return;
+    }
     const has = S.guess.flags.includes(i);
     if (action === 'reveal' && has) return toast('Najpierw zdejmij flagę (PPM).');
     Sound.sfx(action === 'flag' ? (has ? 'unflag' : 'flag') : 'reveal');

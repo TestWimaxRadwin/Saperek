@@ -194,7 +194,22 @@ function handle(token, msg) {
       if (room.phase !== 'playing') return { error: 'Teraz nie można grać.' };
       const i = msg.i;
       if (!Number.isInteger(i) || i < 0 || i >= n * n) return { error: 'Złe pole.' };
-      if (p.revealed.has(i)) return { error: 'Pole jest już odkryte.' };
+      if (p.revealed.has(i)) {
+        // "Chord": klik w odkryty numer, wokół którego jest tyle flag, ile wskazuje liczba
+        if (a === 'flag') return { error: 'Pole jest już odkryte.' };
+        const v = num(o.bombs, i, n);
+        if (v === 0) return { error: 'Pole jest już odkryte.' };
+        let fl = 0; const targets = [];
+        forEachNeighbor(i, n, j => { if (p.flags.has(j)) fl++; else if (!p.revealed.has(j)) targets.push(j); });
+        if (fl !== v) return { error: 'Liczba flag wokół pola musi być równa numerowi.' };
+        if (!targets.length) return { error: 'Nie ma tu nic do odkrycia.' };
+        p.last = i;
+        const mine = targets.find(j => o.bombs.has(j));
+        if (mine !== undefined) { p.boom = mine; endRound(1 - idx, 'boom'); return { ok: true }; }
+        targets.forEach(j => floodReveal(p, o, j));
+        if (p.revealed.size === n * n - bombCount()) endRound(idx, 'cleared');
+        return { ok: true };
+      }
       if (a === 'flag') {
         if (p.flags.has(i)) p.flags.delete(i);
         else {
